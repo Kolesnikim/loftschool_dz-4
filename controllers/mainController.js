@@ -2,26 +2,26 @@ const nodemailer = require('nodemailer')
 const validator = require('validator')
 
 const config = require('../nodemailer.config.json')
-const db = require('../db')
+const db = require('../models/db')
 
-exports.getMainPage = (req, res, next) => {
+exports.getMainPage = async (ctx, next) => {
     const products = db.get('products').value()
     const skills = db.get('skills').value()
 
-    res.render('pages/index', { title: 'Main page', products, skills, msgemail: req.flash('msgemail')})
+    await ctx.render('pages/index', { title: 'Main page', products, skills, msgemail: ctx.flash('msgemail')})
 }
 
-exports.sendMessage = async (req, res, next) => {
-    const { name, email, message } = req.body
+exports.sendMessage = async (ctx, next) => {
+    const { name, email, message } = ctx.request.body
 
     if (!name || !email || !message) {
-        req.flash('msgemail', 'Вы ввели недостаточные данные для отправки письма!')
-        return res.redirect('/')
+        ctx.flash('msgemail', 'Вы ввели недостаточные данные для отправки письма!')
+        return ctx.redirect('/')
     }
 
     if (!validator.isEmail(email)) {
-        req.flash('msgemail', 'Вы ввели адрес в неверном формате!')
-        return res.redirect('/')
+        ctx.flash('msgemail', 'Вы ввели адрес в неверном формате!')
+        return ctx.redirect('/')
     }
 
     const transport = nodemailer.createTransport(config.mail.smtp)
@@ -34,12 +34,11 @@ exports.sendMessage = async (req, res, next) => {
             text: `${name} "${email}" Отправил Вам письмо: ${message}`,
         })
 
-        req.flash('msgemail', 'Письмо успешно отправлено!')
-        res.redirect('/')
+        ctx.flash('msgemail', 'Письмо успешно отправлено!')
+        ctx.redirect('/')
     } catch (err) {
-        console.log(err)
-        req.flash('msgemail', 'Что-то пошло не так. Отправьте Ваше сообщение позже!')
-        res.redirect('/')
+        ctx.flash('msgemail', 'Что-то пошло не так. Отправьте Ваше сообщение позже!')
+        ctx.redirect('/')
     }
 }
 

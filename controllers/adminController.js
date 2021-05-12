@@ -4,17 +4,17 @@ const fs = require(('fs'))
 const validator = require('validator')
 const formidable = require('formidable')
 
-const db = require('../db')
+const db = require('../models/db')
 
-exports.isAdmin = (req, res, next) => {
-    if (req.session.isAdmin) {
+exports.isAdmin = (ctx, next) => {
+    if (ctx.session.isAdmin) {
         return next()
     }
 
-    res.redirect('/login')
+    ctx.redirect('/login')
 }
 
-exports.getAdminPage = (req, res, next) => {
+exports.getAdminPage = async (ctx, next) => {
     const age = db.get('skills[0]').value().number
     const concerts = db.get('skills[1]').value().number
     const cities = db.get('skills[2]').value().number
@@ -22,17 +22,23 @@ exports.getAdminPage = (req, res, next) => {
 
     const counts = { age, concerts, cities, years }
 
-    res.render('pages/admin',
+    await ctx.render('pages/admin',
         {
             title: 'Admin page',
-            msgskill: req.flash('msgskill'),
-            msgfile: req.flash('msgfile'),
+            msgskill: ctx.flash('msgskill'),
+            msgfile: ctx.flash('msgfile'),
             counts
         })
 }
 
-exports.updateSkills = (req, res, next) => {
-    const { age, concerts, cities, years } = req.body
+exports.updateSkills = async (ctx, next) => {
+    const { age, concerts, cities, years } = ctx.request.body
+
+    if (!age || !concerts || !cities || !years) {
+        ctx.flash('msgskill', 'Вы указали не все численные показатели!')
+        ctx.redirect('/admin')
+        return
+    }
 
     const newSkills = [
         {
@@ -53,19 +59,13 @@ exports.updateSkills = (req, res, next) => {
         }
     ]
 
-    if (!age || !concerts || !cities || !years) {
-        req.flash('msgskill', 'Вы указали не все численные показатели!')
-        res.redirect('/admin')
-        return
-    }
-
     db.set('skills', newSkills).write()
 
-    req.flash('msgskill', 'Новые показатели успешно сохранены!')
-    res.redirect('/admin')
+    ctx.flash('msgskill', 'Новые показатели успешно сохранены!')
+    ctx.redirect('/admin')
 }
 
-exports.addNewProduct = (req, res, next) => {
+exports.addNewProduct = async (ctx, next) => {
     const form = formidable.IncomingForm()
     const upload = path.join('./public', 'assets', 'img', 'products')
 
@@ -75,36 +75,39 @@ exports.addNewProduct = (req, res, next) => {
 
     form.uploadDir = path.join(process.cwd(), upload)
 
-    form.parse(req, (err, fields, files) => {
-        if (err) return next(err)
+    await new Promise((resolve, reject) => {
+        form.parse(ctx.req, (err, fields, files) => {
+            if (err) reject(err)
 
-        const valid = validation(fields, files)
+            const valid = validation(fields, files)
 
-        if (valid.err) {
-            fs.unlinkSync(files.photo.path)
+            if (valid.err) {
+                fs.unlinkSync(files.photo.path)
 
-            req.flash('msgfile', valid.status)
-            return res.redirect('/admin')
-        }
+                ctx.flash('msgfile', valid.status)
+                return ctx.redirect('/admin')
+            }
 
-        const fileName = path.join(upload, files.photo.name)
+            const fileName = path.join(upload, files.photo.name)
 
-        fs.rename(files.photo.path, fileName, (err) => {
-            if (err) throw err;
+            fs.rename(files.photo.path, fileName, (err) => {
+                if (err) reject(err);
+            })
+
+            const dir = `.${fileName.substr(fileName.indexOf('/'))}`
+
+            const newProduct = {
+                src: dir,
+                name: fields.name,
+                price: parseFloat(fields.price)
+            }
+
+            db.get('products').push(newProduct).write()
+
+            ctx.flash('msgfile', 'Новый продукт успешно сохранен!')
+            ctx.redirect('/admin')
+            resolve();
         })
-
-        const dir = `.${fileName.substr(fileName.indexOf('/'))}`
-
-        const newProduct = {
-            src: dir,
-            name: fields.name,
-            price: parseFloat(fields.price)
-        }
-
-        db.get('products').push(newProduct).write()
-
-        req.flash('msgfile', 'Новый продукт успешно сохранен!')
-        res.redirect('/admin')
     })
 }
 

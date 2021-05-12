@@ -1,8 +1,8 @@
-const express = require('express')
+const Router = require('koa-router')
 
 const adminController = require('../controllers/adminController')
 
-const router = express.Router()
+const router = new Router()
 
 router.get('/', adminController.isAdmin, adminController.getAdminPage)
 

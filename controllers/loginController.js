@@ -3,23 +3,23 @@ const user = {
     password: '010123456aA'
 }
 
-exports.getLoginPage = (req, res, next) => {
-    if (req.session.isAdmin) {
-        res.redirect('/admin')
+exports.getLoginPage = async (ctx, next) => {
+    if (ctx.session.isAdmin) {
+        ctx.redirect('/admin')
     }
 
-    res.render('pages/login', { title: 'SigIn page', msglogin: req.flash('warning') })
+    await ctx.render('pages/login', { title: 'SigIn page', msglogin: ctx.flash('warning') })
 }
 
-exports.sendForm = (req, res, next) => {
-    const { email, password } = req.body;
+exports.sendForm = async (ctx, next) => {
+    const { email, password } = ctx.request.body
 
     if (email !== user.email || password !== user.password) {
-        req.flash('warning', 'Вы ввели неверный логин или пароль!')
-        res.redirect('/login')
+        ctx.flash('warning', 'Вы ввели неверный логин или пароль!')
+        ctx.redirect('/login')
         return
     }
 
-    req.session.isAdmin = true;
-    res.redirect('/admin')
+    ctx.session.isAdmin = true
+    ctx.redirect('/admin')
 }

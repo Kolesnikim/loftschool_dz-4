@@ -1,15 +1,15 @@
-const express = require('express')
+const Router = require('koa-router')
 
 const mainRouter = require('./main')
 const loginRouter = require('./login')
 const adminRouter = require('./admin')
 
-const router = express.Router()
+const router = new Router()
 
-router.use('/', mainRouter)
+router.use('/', mainRouter.routes())
 
-router.use('/login', loginRouter)
+router.use('/login', loginRouter.routes())
 
-router.use('/admin', adminRouter)
+router.use('/admin', adminRouter.routes())
 
 module.exports = router

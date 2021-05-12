@@ -1,31 +1,36 @@
 const path = require('path')
 
-const createError = require('http-errors')
-const express = require('express')
-const logger = require('morgan')
-const flash = require('connect-flash')
-const session = require('express-session')
+const Koa = require('koa')
+const serve = require('koa-static')
+const koaBody = require('koa-body')
+const KoaPug = require('koa-pug')
+const session = require('koa-session')
+const flash = require('koa-connect-flash')
+
+const logger = require('koa-morgan')
 const dotenv = require('dotenv')
 
-const Router = require('./routes/')
+const router = require('./routes/')
+const errorHandler = require('./controllers/errorController')
 
 dotenv.config({
   path: './config.env'
 });
 
-const app = express()
+const app = new Koa()
 
-// view engine setup
-app.set('views', path.join(__dirname, 'views'))
-app.set('view engine', 'pug')
+const pug = new KoaPug({
+  viewPath: path.resolve(__dirname, 'views'),
+  app: app,
+});
 
 process.env.NODE_ENV === 'development'
   ? app.use(logger('dev'))
   : app.use(logger('short'))
 
-app.use(express.json())
-app.use(express.urlencoded({ extended: false }))
-
+app.use(koaBody())
+app.use(serve(path.resolve(__dirname, 'public')))
+app.use(flash())
 app.use(session({
   secret: process.env.SESSION_SECRET,
   key: 'current-user',
@@ -34,32 +39,24 @@ app.use(session({
     httpOnly: true,
     maxAge: 1000 * 60 * 60 * 24
   },
+  signed: false,
+  rolling: false,
+  renew: false,
   saveUninitialized: false,
   resave: false
-}))
+}, app))
 
-app.use(flash())
+app.use(router.routes())
 
-app.use('/', Router)
+app.use(errorHandler);
 
-app.use(express.static(path.join(__dirname, 'public')))
-
-// catch 404 and forward to error handler
-app.use((req, __, next) => {
-  next(
-    createError(404, `Ой, извините, но по пути ${req.url} ничего не найдено!`)
-  )
-})
-
-// error handler
-app.use((err, req, res, next) => {
-  // set locals, only providing error in development
-  res.locals.message = err.message
-  res.locals.error = req.app.get('env') === 'development' ? err : {}
-
-  // render the error page
-  res.status(err.status || 500)
-  res.render('error')
-})
+app.on('error', (err, ctx) => {
+  console.log(err)
+  ctx.response.body = {}
+  ctx.render('error', {
+    status: ctx.response.status,
+    error: ctx.response.message,
+  });
+});
 
 app.listen(3000, () => {})

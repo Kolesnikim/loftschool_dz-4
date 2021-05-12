@@ -1,11 +1,11 @@
 {
   "skills": [
     {
-      "number": "55",
+      "number": "5564",
       "text": "Возраст начала занятий на скрипке"
     },
     {
-      "number": "512",
+      "number": "5124",
       "text": "Концертов отыграл"
     },
     {
@@ -62,6 +62,16 @@
       "src": "./assets/img/products/Work9.jpg",
       "name": "Вино вдохновение",
       "price": 600
+    },
+    {
+      "src": "./assets/img/products/Group 15.png",
+      "name": "yr yu",
+      "price": 300
+    },
+    {
+      "src": "./assets/img/products/Group 15.png",
+      "name": "555",
+      "price": 555
     }
   ]
 }

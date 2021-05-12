@@ -1,9 +1,8 @@
-const express = require('express')
+const Router = require('koa-router')
 
 const mainController = require('../controllers/mainController')
-const db = require('../db')
 
-const router = express.Router()
+const router = new Router()
 
 router.get('/', mainController.getMainPage)
 
