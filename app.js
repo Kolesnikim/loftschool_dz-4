@@ -1,9 +1,17 @@
+const path = require('path')
+
 const createError = require('http-errors')
 const express = require('express')
-const path = require('path')
 const logger = require('morgan')
+const flash = require('connect-flash')
+const session = require('express-session')
+const dotenv = require('dotenv')
 
-const mainRouter = require('./routes/')
+const Router = require('./routes/')
+
+dotenv.config({
+  path: './config.env'
+});
 
 const app = express()
 
@@ -18,9 +26,23 @@ process.env.NODE_ENV === 'development'
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 
-app.use(express.static(path.join(__dirname, 'public')))
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  key: 'current-user',
+  cookie: {
+    path: '/',
+    httpOnly: true,
+    maxAge: 1000 * 60 * 60 * 24
+  },
+  saveUninitialized: false,
+  resave: false
+}))
 
-app.use('/', mainRouter)
+app.use(flash())
+
+app.use('/', Router)
+
+app.use(express.static(path.join(__dirname, 'public')))
 
 // catch 404 and forward to error handler
 app.use((req, __, next) => {

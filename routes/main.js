@@ -1,14 +1,12 @@
 const express = require('express')
+
+const mainController = require('../controllers/mainController')
+const db = require('../db')
+
 const router = express.Router()
-const { products, skills } = require('../data.json')
 
-router.get('/', (req, res, next) => {
-  res.render('pages/index', { title: 'Main page', products, skills })
-})
+router.get('/', mainController.getMainPage)
 
-router.post('/', (req, res, next) => {
-  // TODO: Реализовать функционал отправки письма.
-  res.send('Реализовать функционал отправки письма')
-})
+router.post('/', mainController.sendMessage)
 
 module.exports = router

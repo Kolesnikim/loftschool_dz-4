@@ -11,25 +11,25 @@ block content
         .form-container
           form.form-skill(action='/admin/skills' method="POST")
             .form-title Счетчики
-            if (msgskill)
+            if (msgskill.length > 0)
               .status= msgskill
-            label.form-skill__input-line 
+            label.form-skill__input-line
               span.form-skill__input-title Возраст
-              input(name="age" type="number").form-skill__input
-            label.form-skill__input-line 
+              input(name="age" type="number" value=counts.age).form-skill__input
+            label.form-skill__input-line
               span.form-skill__input-title Концертов
-              input(name="concerts" type="number").form-skill__input
-            label.form-skill__input-line 
+              input(name="concerts" type="number" value=counts.concerts).form-skill__input
+            label.form-skill__input-line
               span.form-skill__input-title Число городов
-              input(name="cities" type="number").form-skill__input
-            label.form-skill__input-line 
+              input(name="cities" type="number" value=counts.cities).form-skill__input
+            label.form-skill__input-line
               span.form-skill__input-title Лет на сцене
-              input(name="years" type="number").form-skill__input
+              input(name="years" type="number" value=counts.years).form-skill__input
             .form__btns.form-skill__input-line
               button(type="submit").button Сохранить
           form.form-upload(action='/admin/upload' method="POST" enctype="multipart/form-data")
             .form-title Добавить товар
-            if (msgfile)
+            if (msgfile.length > 0)
               .status= msgfile
             .form-upload__input-line
               .form-upload__wraper

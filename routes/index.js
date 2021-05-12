@@ -1,10 +1,15 @@
 const express = require('express')
+
+const mainRouter = require('./main')
+const loginRouter = require('./login')
+const adminRouter = require('./admin')
+
 const router = express.Router()
 
-router.use('/', require('./main'))
+router.use('/', mainRouter)
 
-router.use('/login', require('./login'))
+router.use('/login', loginRouter)
 
-router.use('/admin', require('./admin'))
+router.use('/admin', adminRouter)
 
 module.exports = router

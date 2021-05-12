@@ -1,13 +1,11 @@
 const express = require('express')
+
+const loginController = require('../controllers/loginController')
+
 const router = express.Router()
 
-router.get('/', (req, res, next) => {
-  res.render('pages/login', { title: 'SigIn page' })
-})
+router.get('/', loginController.getLoginPage)
 
-router.post('/', (req, res, next) => {
-  // TODO: Реализовать функцию входа в админ панель по email и паролю
-  res.send('Реализовать функцию входа по email и паролю')
-})
+router.post('/', loginController.sendForm)
 
 module.exports = router
